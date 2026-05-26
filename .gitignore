@@ -219,6 +219,7 @@ __marimo__/
 
 # 自定义忽略规则
 data/raw/
+data/augmented/
 *.pt
 logs/
 *.docx

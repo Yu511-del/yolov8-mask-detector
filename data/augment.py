@@ -11,6 +11,7 @@ from pathlib import Path
 from collections import Counter
 
 
+RANDOM_SEED = 42
 CLASS_MINORITY = 2   # mask_weared_incorrect
 TARGET_COUNT = 1000  # desired number of minority instances after augmentation
 ROTATION_RANGE = (-15, 15)      # degrees
@@ -91,6 +92,8 @@ def oversample_minority(train_img_dir, train_label_dir, output_img_dir, output_l
     output_label_dir = Path(output_label_dir)
     output_img_dir.mkdir(parents=True, exist_ok=True)
     output_label_dir.mkdir(parents=True, exist_ok=True)
+
+    random.seed(RANDOM_SEED)
 
     # First, copy all original files to output (we will add augmented ones later)
     for src_img in train_img_dir.glob("*.*"):
