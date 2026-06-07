@@ -1,32 +1,80 @@
 from training.trainers.yolo_trainer import CustomYoloTrainer
-import argparse
+import os
+import sys
 
-def run_experiments():
-    # 1. 基础实验 (Baseline): YOLOv8s, 开启混合精度和早停
+def run_comparison_experiments():
+    """
+    运行对比实验：
+    1. Baseline (原始处理后的数据)
+    2. Improved (经过数据增强后的数据)
+
+    该脚本设计用于在云端(Kaggle)一键启动完整实验流程。
+    """
+
+    # --- 实验 1: Baseline (使用原始处理后的数据) ---
+    print("\n" + "="*60)
+    print("STEP 1: Starting Baseline Experiment (Original Data)")
+    print("="*60)
+
     baseline_trainer = CustomYoloTrainer(
         model_variant='yolov8s.pt', 
         project_name='face_mask_detection', 
-        experiment_name='baseline_s'
+        experiment_name='baseline_original'
     )
-    baseline_trainer.train(epochs=10, imgsz=640, batch=16, patience=5) # 示例设为10轮，实际建议100+
 
-    # 2. 消融实验 (Ablation Study): 关闭 Mosaic 增强
-    no_mosaic_trainer = CustomYoloTrainer(
+    # 默认使用 configs/dataset.yaml (指向 data/processed)
+    # 建议生产环境设为 100+ epochs，此处为演示设为 50
+    baseline_trainer.train(
+        data_config='configs/dataset.yaml', 
+        epochs=100, 
+        imgsz=640, 
+        batch=16,
+        patience=20
+    )
+
+    # --- 实验 2: 数据增强 (如果尚未生成) ---
+    if not os.path.exists('data/augmented/images'):
+        print("\n" + "-"*60)
+        print("[INFO] Augmented data not found. Running data/augment.py...")
+        print("-"*60)
+
+        # 确保父目录存在
+        os.makedirs('data/augmented', exist_ok=True)
+
+        # 执行增强脚本
+        exit_code = os.system(f"{sys.executable} data/augment.py")
+        if exit_code != 0:
+            print("[ERROR] Data augmentation failed. Please check data/augment.py")
+            return
+    else:
+        print("\n[INFO] Augmented data already exists. Skipping augmentation step.")
+
+    # --- 实验 3: Improved (使用增强后的数据) ---
+    print("\n" + "="*60)
+    print("STEP 2: Starting Improved Experiment (Augmented Data)")
+    print("="*60)
+
+    improved_trainer = CustomYoloTrainer(
         model_variant='yolov8s.pt', 
         project_name='face_mask_detection', 
-        experiment_name='ablation_no_mosaic'
+        experiment_name='improved_augmented'
     )
-    no_mosaic_trainer.train(epochs=10, imgsz=640, batch=16, mosaic=0.0)
 
-    # 3. 多尺度对比 (Scale Comparison): 训练轻量化 YOLOv8n
-    nano_trainer = CustomYoloTrainer(
-        model_variant='yolov8n.pt', 
-        project_name='face_mask_detection', 
-        experiment_name='comparison_nano'
+    # 使用 configs/dataset_aug.yaml (指向 data/augmented)
+    improved_trainer.train(
+        data_config='configs/dataset_aug.yaml', 
+        epochs=100, 
+        imgsz=640, 
+        batch=16,
+        patience=20
     )
-    nano_trainer.train(epochs=10, imgsz=640, batch=16)
+
+    print("\n" + "="*60)
+    print("ALL EXPERIMENTS COMPLETED!")
+    print("Results are stored in: experiments/face_mask_detection/")
+    print("="*60)
 
 if __name__ == "__main__":
-    # 提示：实际运行前请确保 data/augmented 目录已通过 scripts/augment.py 生成
-    # 或者将 configs/dataset.yaml 中的路径指向原始处理后的数据
-    run_experiments()
+    # 注意：在 Kaggle 上运行前，请确保已安装 requirements.txt 中的依赖
+    run_comparison_experiments()
+

@@ -1,4 +1,4 @@
-# YOLOv8 dataset configuration
+# YOLOv8 augmented dataset configuration
 # Paths are relative to the project root
 path: ./data/augmented
 train: images/train
