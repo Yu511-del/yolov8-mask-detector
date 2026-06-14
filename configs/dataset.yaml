@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # YOLOv8 dataset configuration
 # Paths are relative to the project root
 path: ./data/processed
@@ -12,4 +13,20 @@ nc: 3
 names:
   0: with_mask
   1: without_mask
+=======
+# YOLOv8 dataset configuration
+# Paths are relative to the project root
+path: ./data/augmented
+train: images/train
+val: images/val
+test: images/test
+
+# Number of classes
+nc: 3
+
+# Class names
+names:
+  0: with_mask
+  1: without_mask
+>>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
   2: mask_weared_incorrect
