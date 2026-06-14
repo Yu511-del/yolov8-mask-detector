@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 torch>=2.0.0
 torchvision>=0.15.0
 ultralytics>=8.0.0
@@ -12,4 +13,20 @@ nbdime
 pre-commit
 kagglehub
 xmltodict
+=======
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0
+opencv-python
+numpy
+matplotlib
+pandas
+tqdm
+tensorboard
+pyyaml
+nbdime
+pre-commit
+kagglehub
+xmltodict
+>>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
 seaborn

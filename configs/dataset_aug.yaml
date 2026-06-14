@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # YOLOv8 augmented dataset configuration
 # Paths are relative to the project root
 path: ./data/augmented
@@ -13,3 +14,20 @@ names:
   0: with_mask
   1: without_mask
   2: mask_weared_incorrect
+=======
+# YOLOv8 augmented dataset configuration
+# Paths are relative to the project root
+path: ./data/augmented
+train: images/train
+val: images/val
+test: images/test
+
+# Number of classes
+nc: 3
+
+# Class names
+names:
+  0: with_mask
+  1: without_mask
+  2: mask_weared_incorrect
+>>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
