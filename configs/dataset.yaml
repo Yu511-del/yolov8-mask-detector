@@ -1,0 +1,15 @@
+# YOLOv8 dataset configuration
+# Paths are relative to the project root
+path: ./data/processed
+train: images/train
+val: images/val
+test: images/test
+
+# Number of classes
+nc: 3
+
+# Class names
+names:
+  0: with_mask
+  1: without_mask
+  2: mask_weared_incorrect
