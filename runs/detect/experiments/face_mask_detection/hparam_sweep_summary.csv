@@ -1,6 +1,0 @@
-run_name,status,epoch,precision,recall,mAP50,mAP50_95,train_time
-hparam_baseline,ok,45,0.8602,0.83984,0.8662,0.61224,105.026
-hparam_lr0_0005,ok,67,0.88155,0.84199,0.83892,0.60336,154.331
-hparam_lr0_0005_adamw,ok,72,0.93457,0.80425,0.86023,0.58942,182.878
-hparam_batch32,ok,35,0.86051,0.81759,0.7922,0.56497,89.4147
-hparam_patience15,ok,50,0.91236,0.7765,0.80085,0.58071,127.118
