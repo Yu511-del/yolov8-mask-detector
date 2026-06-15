@@ -1,170 +1,103 @@
-<<<<<<< HEAD
-from training.trainers.yolo_trainer import CustomYoloTrainer
-
-def run_comparison_experiments():
-    """
-    运行对比实验：
-    1. YOLOv8n / YOLOv8s / YOLOv8m 对比实验
-    2. 基于相同数据与增强配置，比较不同模型规模的精度与速度权衡
-
-    """
-
-    # 旧版本实验流程（保留作参考，不再执行）
-    # --- 实验 1: Baseline (使用原始处理后的数据，无增强) ---
-    # print("\n" + "="*60)
-    # print("STEP 1: Starting Baseline Experiment (Original Data, No Augmentation)")
-    # print("="*60)
-    
-    # baseline_trainer = CustomYoloTrainer(
-    #     model_variant='yolov8s.pt',
-    #     project_name='face_mask_detection',
-    #     experiment_name='baseline_original'
-    # )
-    
-    # baseline_trainer.train(
-    #     data_config='configs/dataset.yaml',   # 指向原始数据 (data/processed)
-    #     epochs=100,
-    #     imgsz=640,
-    #     batch=16,
-    #     patience=20,
-    #     mosaic=0.0,
-    #     mixup=0.0
-    # )
-    
-    # # --- 实验 2: Improved (使用原始数据 但开启 YOLO 内置增强) ---
-    # print("\n" + "="*60)
-    # print("STEP 2: Starting Improved Experiment (Original Data + YOLO Built-in Augmentation)")
-    # print("="*60)
-    
-    # improved_trainer = CustomYoloTrainer(
-    #     model_variant='yolov8s.pt',
-    #     project_name='face_mask_detection',
-    #     experiment_name='improved_augmented'
-    # )
-    
-    # improved_trainer.train(
-    #     data_config='configs/dataset.yaml',   # 仍然指向原始数据
-    #     epochs=100,
-    #     imgsz=640,
-    #     batch=16,
-    #     patience=20,
-    #     mosaic=1.0,
-    #     mixup=0.1
-    # )
-
-    experiment_configs = [
-        ("YOLOv8n", "yolov8n.pt", "improved_nano"),
-        ("YOLOv8s", "yolov8s.pt", "iroved_small"),
-        ("YOLOv8m", "yolov8m.pt", "improved_medium"),
-    ]
-
-    for index, (model_label, model_variant, experiment_name) in enumerate(experiment_configs, start=1):
-        print("\n" + "=" * 60)
-        print(f"STEP {index}: Starting {model_label} Experiment (Original Data + YOLO Built-in Augmentation)")
-        print("=" * 60)
-
-        trainer = CustomYoloTrainer(
-            model_variant=model_variant,
-            project_name='face_mask_detection',
-            experiment_name=experiment_name,
-        )
-
-        trainer.train(
-            data_config='configs/dataset.yaml',
-            epochs=100,
-            imgsz=640,
-            batch=16,
-            patience=20,
-            mosaic=1.0,
-            mixup=0.1,
-        )
-
-    print("\n" + "="*60)
-    print("ALL EXPERIMENTS COMPLETED!")
-    print("Results are stored in: experiments/face_mask_detection/")
-    print("="*60)
-
-if __name__ == "__main__":
-    run_comparison_experiments()
-=======
-from training.trainers.yolo_trainer import CustomYoloTrainer
 import os
 import sys
+import subprocess
+from pathlib import Path
+from ultralytics import YOLO
 
-def run_comparison_experiments():
-    """
-    运行对比实验：
-    1. Baseline (原始处理后的数据)
-    2. Improved (经过数据增强后的数据)
+def run_command(command, description):
+    print(f"\n>>> Running: {description}")
+    print(f"Command: {command}")
+    try:
+        subprocess.run(command, shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error during {description}: {e}")
+        sys.exit(1)
 
-    该脚本设计用于在云端(Kaggle)一键启动完整实验流程。
-    """
+def main():
+    project_root = Path(__file__).resolve().parent
+    exp_dir = project_root / "experiments"
+    exp_dir.mkdir(exist_ok=True)
 
-    # --- 实验 1: Baseline (使用原始处理后的数据) ---
-    print("\n" + "="*60)
-    print("STEP 1: Starting Baseline Experiment (Original Data)")
-    print("="*60)
-
-    baseline_trainer = CustomYoloTrainer(
-        model_variant='yolov8s.pt', 
-        project_name='face_mask_detection', 
-        experiment_name='baseline_original'
-    )
-
-    # 默认使用 configs/dataset.yaml (指向 data/processed)
-    # 建议生产环境设为 100+ epochs，此处为演示设为 50
-    baseline_trainer.train(
-        data_config='configs/dataset.yaml', 
-        epochs=100, 
-        imgsz=640, 
-        batch=16,
-        patience=20
-    )
-
-    # --- 实验 2: 数据增强 (如果尚未生成) ---
-    if not os.path.exists('data/augmented/images'):
-        print("\n" + "-"*60)
-        print("[INFO] Augmented data not found. Running data/augment.py...")
-        print("-"*60)
-
-        # 确保父目录存在
-        os.makedirs('data/augmented', exist_ok=True)
-
-        # 执行增强脚本
-        exit_code = os.system(f"{sys.executable} data/augment.py")
-        if exit_code != 0:
-            print("[ERROR] Data augmentation failed. Please check data/augment.py")
-            return
+    # ==========================================
+    # Phase 0: Baseline
+    # ==========================================
+    baseline_dir = exp_dir / "baseline"
+    if not (baseline_dir / "weights" / "best.pt").exists():
+        print("\n" + "="*60)
+        print("STAGE 0: Starting Baseline Experiment")
+        print("="*60)
+        
+        model = YOLO("yolov8n.pt")
+        model.train(
+            data="configs/dataset.yaml",
+            epochs=100,
+            batch=16,
+            imgsz=640,
+            mosaic=0.0,
+            mixup=0.0,
+            project="experiments",
+            name="baseline",
+            exist_ok=True
+        )
     else:
-        print("\n[INFO] Augmented data already exists. Skipping augmentation step.")
+        print("\n[INFO] Baseline experiment already completed. Skipping.")
 
-    # --- 实验 3: Improved (使用增强后的数据) ---
+    # ==========================================
+    # Phase 1: Data Generation
+    # ==========================================
+    aug_data_dir = project_root / "data" / "augmented"
+    aug_config = project_root / "configs" / "dataset_aug.yaml"
+    
+    if not aug_data_dir.exists() or not aug_config.exists():
+        print("\n" + "="*60)
+        print("STAGE 1: Generating Augmented Dataset")
+        print("="*60)
+        run_command(f"{sys.executable} data/augment.py --target_ratio 0.6", "Data Augmentation")
+    else:
+        print("\n[INFO] Augmented dataset already exists. Skipping generation.")
+
+    # ==========================================
+    # Phase 2: Ablation Study
+    # ==========================================
+    ablation_configs = [
+        {"name": "abl1", "mosaic": 0.0, "mixup": 0.0, "copy_paste": 0.0},
+        {"name": "abl2", "mosaic": 1.0, "mixup": 0.0, "copy_paste": 0.0},
+        {"name": "abl3", "mosaic": 1.0, "mixup": 0.5, "copy_paste": 0.0},
+        {"name": "abl4", "mosaic": 1.0, "mixup": 0.5, "copy_paste": 0.5},
+    ]
+
     print("\n" + "="*60)
-    print("STEP 2: Starting Improved Experiment (Augmented Data)")
+    print("STAGE 2: Starting Ablation Study (4 Experiments)")
     print("="*60)
 
-    improved_trainer = CustomYoloTrainer(
-        model_variant='yolov8s.pt', 
-        project_name='face_mask_detection', 
-        experiment_name='improved_augmented'
-    )
+    for cfg in ablation_configs:
+        cfg_name = cfg["name"]
+        cfg_dir = exp_dir / "ablation" / cfg_name
+        
+        if (cfg_dir / "weights" / "best.pt").exists():
+            print(f"\n[INFO] Experiment {cfg_name} already completed. Skipping.")
+            continue
 
-    # 使用 configs/dataset_aug.yaml (指向 data/augmented)
-    improved_trainer.train(
-        data_config='configs/dataset_aug.yaml', 
-        epochs=100, 
-        imgsz=640, 
-        batch=16,
-        patience=20
-    )
+        print(f"\n>>> Running Ablation: {cfg_name} (mosaic={cfg['mosaic']}, mixup={cfg['mixup']}, copy_paste={cfg['copy_paste']})")
+        
+        model = YOLO("yolov8n.pt")
+        model.train(
+            data="configs/dataset_aug.yaml",
+            epochs=100,
+            batch=16,
+            imgsz=640,
+            mosaic=cfg["mosaic"],
+            mixup=cfg["mixup"],
+            copy_paste=cfg["copy_paste"],
+            project="experiments/ablation",
+            name=cfg_name,
+            exist_ok=True
+        )
 
     print("\n" + "="*60)
     print("ALL EXPERIMENTS COMPLETED!")
-    print("Results are stored in: experiments/face_mask_detection/")
+    print(f"Results are stored in: {exp_dir}")
     print("="*60)
 
 if __name__ == "__main__":
-    # 注意：在 Kaggle 上运行前，请确保已安装 requirements.txt 中的依赖
-    run_comparison_experiments()
-
->>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
+    main()
