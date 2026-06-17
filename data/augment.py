@@ -4,6 +4,7 @@ import yaml
 import random
 import numpy as np
 from pathlib import Path
+from PIL import Image
 from tqdm import tqdm
 from collections import Counter
 
@@ -148,7 +149,12 @@ def run_augmentation(target_ratio=0.6):
                     break
             if not img_path: continue
             
-            image = cv2.imread(str(img_path))
+            try:
+                pil_img = Image.open(str(img_path)).convert("RGB")
+                image = np.array(pil_img)
+                image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            except Exception:
+                continue  # 跳过损坏的图片
             with open(train_lbl_dir / f"{stem}.txt", 'r') as f:
                 boxes = [list(map(float, line.split())) for line in f.readlines() if line.strip()]
                 # convert class to int

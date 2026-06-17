@@ -1,0 +1,16 @@
+# YOLOv8 均衡数据集配置
+# 指向 data/augmented/ 目录（经离线过采样增强后的数据）
+# 用于消融实验，确保所有实验组使用同一份数据，仅改变在线增强策略
+
+path: ./data/augmented
+train: images/train
+val: images/val
+
+# 类别数
+nc: 3
+
+# 类别名称
+names:
+  0: with_mask
+  1: without_mask
+  2: mask_weared_incorrect
