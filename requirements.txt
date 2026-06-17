@@ -1,32 +1,22 @@
-<<<<<<< HEAD
+# ── 核心框架 ──────────────────────────
 torch>=2.0.0
 torchvision>=0.15.0
 ultralytics>=8.0.0
-opencv-python
-numpy
-matplotlib
-pandas
-tqdm
-tensorboard
-pyyaml
+
+# ── 数据处理（项目代码直接调用）────────
+opencv-python>=4.5.0
+numpy>=1.21.0
+pyyaml>=6.0
+
+# ── 可视化与日志 ──────────────────────
+matplotlib>=3.5.0
+seaborn>=0.12.0
+tensorboard>=2.12.0
+tqdm>=4.64.0
+
+# ── 数据集下载 ────────────────────────
+kagglehub>=0.1.0
+
+# ── 开发工具（可选，本地开发用）────────
 nbdime
 pre-commit
-kagglehub
-xmltodict
-=======
-torch>=2.0.0
-torchvision>=0.15.0
-ultralytics>=8.0.0
-opencv-python
-numpy
-matplotlib
-pandas
-tqdm
-tensorboard
-pyyaml
-nbdime
-pre-commit
-kagglehub
-xmltodict
->>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
-seaborn

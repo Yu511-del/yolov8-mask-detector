@@ -1,50 +1,69 @@
-<<<<<<< HEAD
+"""模型评估脚本 —— 计算 mAP, Precision, Recall 及推理延迟 (FPS)。"""
+
 import argparse
-from ultralytics import YOLO
-from pathlib import Path
 import json
 import time
+from pathlib import Path
 
-def evaluate_model(model_path, data_config='configs/dataset.yaml', project='experiments', name='evaluation'):
+from ultralytics import YOLO
+
+
+def evaluate_model(
+    model_path: str,
+    data_config: str = "configs/dataset.yaml",
+    project: str = "experiments",
+    name: str = "evaluation",
+    split: str = "test",
+) -> dict:
+    """对训练好的模型在测试集上进行全面评估。
+
+    Args:
+        model_path: 训练好的模型权重路径。
+        data_config: 数据集 YAML 配置文件路径。
+        project: 结果输出项目目录。
+        name: 本次评估的名称。
+
+    Returns:
+        包含 mAP, Precision, Recall, FPS 的指标字典。
     """
-    对训练好的模型进行全面评估。
-    计算 mAP, Precision, Recall, 以及推理延迟 (FPS)。
-    """
-    print(f"==> Loading model for evaluation: {model_path}")
+    print(f"==> 加载模型: {model_path}")
     model = YOLO(model_path)
-    
-    # 1. 运行验证，获取核心指标
-    # split='test' 确保是在测试集上运行
+
+    # 1. 在测试集上运行验证
     start_time = time.time()
-    results = model.val(data=data_config, split='test', project=project, name=name, exist_ok=True)
+    results = model.val(
+        data=data_config,
+        split=split,
+        project=project,
+        name=name,
+        exist_ok=True,
+    )
     end_time = time.time()
-    
-    # 2. 提取关键指标
-    # mAP@0.5, mAP@0.5:0.95, Precision, Recall
+
+    # 2. 提取核心指标
     mAP50 = results.box.map50
     mAP95 = results.box.map
     precision = results.box.mp
     recall = results.box.mr
-    
-    # 3. 计算推理延迟 (Inference Speed)
-    # 注意：model.val() 会返回每张图的平均处理时间 (ms)
+
+    # 3. 计算推理速度
     speed_dict = results.speed
-    preprocess = speed_dict.get('preprocess', 0)
-    inference = speed_dict.get('inference', 0)
-    postprocess = speed_dict.get('postprocess', 0)
+    preprocess = speed_dict.get("preprocess", 0)
+    inference = speed_dict.get("inference", 0)
+    postprocess = speed_dict.get("postprocess", 0)
     total_time_per_img = preprocess + inference + postprocess
     fps = 1000 / total_time_per_img if total_time_per_img > 0 else 0
 
-    print("\n" + "="*30)
-    print(f"Evaluation Results for: {model_path}")
-    print(f"mAP@0.5: {mAP50:.4f}")
-    print(f"mAP@0.5:0.95: {mAP95:.4f}")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"Speed: {total_time_per_img:.2f} ms/img (FPS: {fps:.1f})")
-    print("="*30 + "\n")
-    
-    # 4. 保存为 JSON 报告，方便后续绘图对比
+    print("\n" + "=" * 40)
+    print(f"  评估结果: {model_path}")
+    print(f"  mAP@0.5:       {mAP50:.4f}")
+    print(f"  mAP@0.5:0.95:  {mAP95:.4f}")
+    print(f"  Precision:     {precision:.4f}")
+    print(f"  Recall:        {recall:.4f}")
+    print(f"  速度:          {total_time_per_img:.2f} ms/img (FPS: {fps:.1f})")
+    print("=" * 40 + "\n")
+
+    # 4. 保存为 JSON 报告
     report = {
         "model": model_path,
         "mAP50": float(mAP50),
@@ -52,110 +71,50 @@ def evaluate_model(model_path, data_config='configs/dataset.yaml', project='expe
         "precision": float(precision),
         "recall": float(recall),
         "fps": float(fps),
-        "ms_per_img": float(total_time_per_img)
+        "ms_per_img": float(total_time_per_img),
     }
-    
+
     report_path = Path(project) / name / "metrics_report.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(report_path, 'w') as f:
-        json.dump(report, f, indent=4)
-    
-    print(f"Metrics report saved to: {report_path}")
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=4, ensure_ascii=False)
+
+    print(f"  指标报告已保存至: {report_path}")
     return report
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="YOLOv8 Model Evaluation Script")
-    parser.add_argument("--weights", type=str, default="experiments/face_mask_detection/baseline_s/weights/best.pt", 
-                        help="Path to trained model weights")
-    parser.add_argument("--data", type=str, default="configs/dataset.yaml", help="Path to dataset yaml")
-    parser.add_argument("--name", type=str, default="test_set_evaluation", help="Name for evaluation result folder")
-    
-    args = parser.parse_args()
-    
-    # 检查权重文件是否存在
-    if not Path(args.weights).exists():
-        print(f"Error: Weights file not found at {args.weights}")
-        print("Please ensure you have trained the model or provided the correct path.")
-    else:
-        evaluate_model(args.weights, data_config=args.data, name=args.name)
-=======
-import argparse
-from ultralytics import YOLO
-from pathlib import Path
-import json
-import time
-
-def evaluate_model(model_path, data_config='configs/dataset.yaml', project='experiments', name='evaluation'):
-    """
-    对训练好的模型进行全面评估。
-    计算 mAP, Precision, Recall, 以及推理延迟 (FPS)。
-    """
-    print(f"==> Loading model for evaluation: {model_path}")
-    model = YOLO(model_path)
-    
-    # 1. 运行验证，获取核心指标
-    # split='test' 确保是在测试集上运行
-    start_time = time.time()
-    results = model.val(data=data_config, split='test', project=project, name=name, exist_ok=True)
-    end_time = time.time()
-    
-    # 2. 提取关键指标
-    # mAP@0.5, mAP@0.5:0.95, Precision, Recall
-    mAP50 = results.box.map50
-    mAP95 = results.box.map
-    precision = results.box.mp
-    recall = results.box.mr
-    
-    # 3. 计算推理延迟 (Inference Speed)
-    # 注意：model.val() 会返回每张图的平均处理时间 (ms)
-    speed_dict = results.speed
-    preprocess = speed_dict.get('preprocess', 0)
-    inference = speed_dict.get('inference', 0)
-    postprocess = speed_dict.get('postprocess', 0)
-    total_time_per_img = preprocess + inference + postprocess
-    fps = 1000 / total_time_per_img if total_time_per_img > 0 else 0
-
-    print("\n" + "="*30)
-    print(f"Evaluation Results for: {model_path}")
-    print(f"mAP@0.5: {mAP50:.4f}")
-    print(f"mAP@0.5:0.95: {mAP95:.4f}")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"Speed: {total_time_per_img:.2f} ms/img (FPS: {fps:.1f})")
-    print("="*30 + "\n")
-    
-    # 4. 保存为 JSON 报告，方便后续绘图对比
-    report = {
-        "model": model_path,
-        "mAP50": float(mAP50),
-        "mAP95": float(mAP95),
-        "precision": float(precision),
-        "recall": float(recall),
-        "fps": float(fps),
-        "ms_per_img": float(total_time_per_img)
-    }
-    
-    report_path = Path(project) / name / "metrics_report.json"
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(report_path, 'w') as f:
-        json.dump(report, f, indent=4)
-    
-    print(f"Metrics report saved to: {report_path}")
-    return report
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="YOLOv8 Model Evaluation Script")
-    parser.add_argument("--weights", type=str, default="experiments/face_mask_detection/baseline_s/weights/best.pt", 
-                        help="Path to trained model weights")
-    parser.add_argument("--data", type=str, default="configs/dataset.yaml", help="Path to dataset yaml")
-    parser.add_argument("--name", type=str, default="test_set_evaluation", help="Name for evaluation result folder")
-    
+    parser = argparse.ArgumentParser(description="YOLOv8 模型评估脚本")
+    parser.add_argument(
+        "--weights",
+        type=str,
+        default="experiments/baseline/weights/best.pt",
+        help="训练好的模型权重路径",
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        default="configs/dataset.yaml",
+        help="数据集 YAML 配置文件路径",
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="test",
+        choices=["train", "val", "test"],
+        help="评估数据集划分（默认 test）",
+    )
+    parser.add_argument(
+        "--name",
+        type=str,
+        default="test_set_evaluation",
+        help="评估结果存放目录名",
+    )
+
     args = parser.parse_args()
-    
-    # 检查权重文件是否存在
+
     if not Path(args.weights).exists():
-        print(f"Error: Weights file not found at {args.weights}")
-        print("Please ensure you have trained the model or provided the correct path.")
+        print(f"Error: 权重文件不存在: {args.weights}")
+        print("请确保已完成训练，或通过 --weights 参数指定正确的路径。")
     else:
-        evaluate_model(args.weights, data_config=args.data, name=args.name)
->>>>>>> 09478e0fb37821ea5f0745798a58211fdd17090d
+        evaluate_model(args.weights, data_config=args.data, name=args.name, split=args.split)
