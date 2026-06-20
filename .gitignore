@@ -225,6 +225,7 @@ data/augmented/
 logs/
 *.docx
 CLAUDE.md
+<<<<<<< HEAD
 
 plan.markdown
 project_overview.md
